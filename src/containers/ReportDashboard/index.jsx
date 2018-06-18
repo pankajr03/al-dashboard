@@ -18,6 +18,7 @@ class ReportDashboard extends Component {
     this.getAllSeasons();
   }
 getAllSeasons = () => {
+  console.log();
   this.toggleLoading();
   fetch('https://gsz8psj9gj.execute-api.us-east-1.amazonaws.com/misc/campPhotos?startDate=2018-06-10&endDate=2018-06-20')
     .then(() => this.toggleLoading());
