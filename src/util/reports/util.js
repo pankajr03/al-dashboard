@@ -63,7 +63,7 @@ const streamData = (query, endPoint) => {
 
 
 module.exports = {
-  generateCsv,
+  // generateCsv,
   // sendEmail,
   createUrl,
   parseBuffer,
