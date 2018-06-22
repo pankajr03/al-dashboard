@@ -1,4 +1,4 @@
-const csvStringify = require('csv-stringify');
+// const csvStringify = require('csv-stringify');
 const hl = require('highland');
 // const request = require('request-promise');
 // const nodemailer = require('nodemailer');
@@ -7,8 +7,8 @@ const { mailerEmail, mailerPass } = require('./constants');
 
 const { endPoints: { base }, baseRequest, baseBody } = require('./constants');
 
-const generateCsv = (stream, columns) => stream
-  .through(csvStringify({ columns, header: true }));
+// const generateCsv = (stream, columns) => stream
+//   .through(csvStringify({ columns, header: true }));
 
 
 const createUrl = (url, endPoint) => `${url}/${endPoint}`;
