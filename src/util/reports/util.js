@@ -20,12 +20,6 @@ const parseBuffer = stream => stream
 
 const streamData = (query, endPoint) => {
   const body = JSON.stringify(Object.assign({ request: Object.assign(query, baseRequest) }, baseBody));
-  const req = new Request(createUrl(base, endPoint), {
-    mode: 'no-cors',
-    method: 'POST',
-    body,
-    json: true,
-  });
   return hl(fetch(createUrl(base, endPoint), {
     mode: 'no-cors',
     method: 'POST',

@@ -39,7 +39,7 @@ class ReportDashboard extends Component {
           <ControlLabel>End Date</ControlLabel>{' '}
           <FormControl type="Date" placeholder="jane.doe@example.com" />
         </FormGroup>{' '}
-        <Button>Filter Camps</Button>
+        <Button download={'out.csv'}>Filter Camps</Button>
       </Form>
     );
   }

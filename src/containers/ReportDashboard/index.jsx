@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Form, FormGroup, ControlLabel, FormControl, Button, Alert, Grid } from 'react-bootstrap';
 import moment from 'moment';
+import signIn from '../../util/reports/signIn';
+import dl from 'downloadjs';
 // import { streamSeasons, streamSessions } from '../../util/reports/data';
 
 class ReportDashboard extends Component {
@@ -18,12 +20,18 @@ class ReportDashboard extends Component {
     this.setState({ err: null });
     console.log(startDate, endDate, this.state.currentReport);
     this.toggleLoading();
-    fetch(`https://gsz8psj9gj.execute-api.us-east-1.amazonaws.com/misc/${this.state.currentReport}?startDate=${moment(startDate).format('YYYY-MM-DD')}&endDate=${moment(endDate).format('YYYY-MM-DD')}`, { mode: 'no-cors' })
-      .then(() => this.toggleLoading())
-      .catch((err) => {
-        this.setState({ err });
+    signIn(startDate, endDate)
+      .stopOnError((err) => {
+        this.setState(err);
         this.toggleLoading();
-      });
+      })
+      .done(() => this.toggleLoading());
+    // fetch(`https://gsz8psj9gj.execute-api.us-east-1.amazonaws.com/misc/${this.state.currentReport}?startDate=${moment(startDate).format('YYYY-MM-DD')}&endDate=${moment(endDate).format('YYYY-MM-DD')}`, { mode: 'no-cors' })
+    //   .then(() => this.toggleLoading())
+    //   .catch((err) => {
+    //     this.setState({ err });
+    //     this.toggleLoading();
+    //   });
   }
 
 toggleLoading = () => {
@@ -58,7 +66,7 @@ render() {
         <Button
           disabled={this.state.loading}
           bsStyle={this.state.loading ? 'warning' : 'success'}
-          onClick={() => this.runReport(this.state.startDate, this.state.endDate)}
+          onClick={() => this.runReport(new Date(this.state.startDate), new Date(this.state.endDate))}
         >
         Run Reports
         </Button>

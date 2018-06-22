@@ -1,138 +1,189 @@
-const csvStringify = require('csv-stringify');
+const XLSX = require('xlsx');
+const _ = require('lodash');
+const hl = require('highland');
+// require('dotenv').config();
 
 const {
-  streamSessions,
+  // streamSessions,
   streamRegistrations,
   streamPeople,
   streamAnswers,
   streamTuitions,
+  // streamSeasons,
+  streamSessionsInDateRange,
+  streamFamilies,
 } = require('./data');
 
-const signInReportColumns = {
-  start: 'Start Date',
-  end: 'End Date',
+const signInHeaders = {
   campCode: 'Camp Code',
   campName: 'Camp Name',
+  startDate: 'Start Date',
+  endDate: 'End Date',
   firstName: 'First Name',
   lastName: 'Last Name',
-  nameString: 'Names',
-  numberString: 'Numbers',
-  sunIn: 'Sun - In',
-  sunOut: 'Sun - Out',
-  monIn: 'Mon - In',
-  monOut: 'Mon - Out',
-  tuesIn: 'Tues - In',
-  tuesOut: 'Tues - Out',
-  wedIn: 'Wed - In',
-  wedOut: 'Wed - Out',
-  thursIn: 'Thurs - In',
-  thursOut: 'Thurs - Out',
-  friIn: 'Fri - In',
-  friOut: 'Fri - Out',
-  satIn: 'Sat - In',
-  satOut: 'Sat - Out',
+  primaryName: 'Primary Parent Name',
+  primaryNumber: 'Primary Parent Number',
+  secondaryName: 'secondary Parent Name',
+  secondaryNumber: 'secondary Parent Number',
+  p1Name: 'p1 Name',
+  p1Number: 'p1 Number',
+  p1Relation: 'p1 Relation',
+  p2Name: 'p2 Name',
+  p2Number: 'p2 Number',
+  p2Relation: 'p2 Relation',
+  p3Name: 'p3 Name',
+  p3Number: 'p3 Number',
+  p3Relation: 'p3 Relation',
+  forbiddenMedication: 'Forbidden OTC Meds',
   canAdministerMedicine: 'Allowed To Administer Medicine',
   shirtSize: 'Shirt Size',
   unApproved: 'Unapproved',
 };
 
-const assignQuestionData = (stream, session) => stream
-  .pluck('questionAnswers')
-  .flatten()
-  .filter(({ label }) => /Person/.test(label) || /Not Authorized/.test(label) || /Shirt Size/.test(label) || /over-the-counter/i.test(label))
-  .reduce((accum, { label, answer }) => {
-    accum.canAdministerMedicine = accum.canAdministerMedicine || (/over-the-counter/i.test(label) && answer);
-    accum.unApproved = accum.unApproved || (/Not Authorized/i.test(label) && answer);
-    accum.shirtSize = accum.shirtSize || (/Shirt Size/.test(label) && answer);
-    if (/Person/.test(label)) {
-      accum.approved[label[8]] = accum.approved[label[8]] || {};
-      if (/Phone Number/.test(label)) { accum.approved[label[8]].phoneNumber = answer; }
-      if (/Full Name/.test(label)) { accum.approved[label[8]].fullName = answer; }
-    }
-    return accum;
-  }, { canAdministerMedicine: '', unApproved: '', approved: {}, shirtSize: '' })
-  .map(({ approved, ...rest }) => {
-    const names = [];
-    const numbers = [];
-    Object.values(approved)
-      .forEach(({ phoneNumber, fullName }) => {
-        names.push(fullName);
-        numbers.push(phoneNumber);
-      });
-    const nameString = names.join('~');
-    const numberString = numbers.join('~');
-    return Object.assign(rest, { nameString, numberString });
-  })
-  .map(data => Object.assign({}, data, session));
-
-const formatSignInReport = (data) => {
+const formatParentData = ({ person }) => {
   const {
+    firstName: primaryFirst,
+    lastName: primaryLast,
+    homePhoneNumber,
+    businessPhoneNumber,
+    cellPhoneNumber,
+  } = person || {};
+  const { phoneNumber: phomePN } = homePhoneNumber || {};
+  const { phoneNumber: pbizPN } = businessPhoneNumber || {};
+  const { phoneNumber: pcellPN } = cellPhoneNumber || {};
+  const numbers = [phomePN, pbizPN, pcellPN].filter(val => !!val);
+  return { name: `${primaryFirst || ''} ${primaryLast || ''}`, number: numbers.join('/') };
+};
+
+const formatAnswers = answers => answers.reduce((accum, { label, answer }) => {
+  accum.canAdministerMedicine = accum.canAdministerMedicine || (/over-the-counter/i.test(label) && answer);
+  accum.unApproved = accum.unApproved || (/Not Authorized/i.test(label) && answer);
+  accum.shirtSize = accum.shirtSize || (/Shirt Size/.test(label) && answer);
+  accum.forbiddenMedication = accum.forbiddenMedication || (/Over-the-Counter/.test(label) && answer);
+  if (/Person/.test(label)) {
+    const number = label[8];
+    if (/Phone Number/.test(label)) accum[`p${number}Number`] = answer;
+    if (/Full Name/.test(label)) { accum[`p${number}Name`] = answer; }
+    if (/Relation/.test(label)) { accum[`p${number}Relation`] = answer; }
+  }
+  return accum;
+}, { forbiddenMedication: '', canAdministerMedicine: '', unApproved: '', shirtSize: '' });
+
+const formatSignInData = (data) => {
+  const {
+    sessionId,
+    person = {},
+    answers = {},
+    tuition: { name: tuitionName },
     location: { name: locationName },
+    name: sessionName,
     startDate: { day: startDay, month: startMonth, year: startYear },
     endDate: { day: endDay, month: endMonth, year: endYear },
-    name: sessionName,
-    person = {},
-    tuition = {},
-    nameString,
-    numberString,
-    canAdministerMedicine,
-    shirtSize,
-    unApproved,
+    family = [],
   } = data;
   const { firstName, lastName } = person;
-  const { name: tuitionName } = tuition;
-  return {
-    firstName,
-    lastName,
-    nameString,
-    numberString,
+  const [primaryParent = {}] = family.filter(({ isPrimaryParent }) => isPrimaryParent === 'Yes');
+  const { name: primaryName, number: primaryNumber } = formatParentData(primaryParent);
+  const [secondaryParent = {}] = family.filter(({ isSecondaryParent }) => isSecondaryParent === 'Yes');
+  const { name: secondaryName, number: secondaryNumber } = formatParentData(secondaryParent);
+  const { questionAnswers } = answers;
+  const {
+    p1Name,
+    p1Number,
+    p1Relation,
+    p2Name,
+    p2Number,
+    p2Relation,
+    p3Name,
+    p3Number,
+    p3Relation,
     canAdministerMedicine,
     shirtSize,
     unApproved,
-    start: `${startMonth}/${startDay}/${startYear}`,
-    end: `${endMonth}/${endDay}/${endYear}`,
-    sessionName,
-    locationName,
-    campCode: tuitionName,
-    campName: `${sessionName}-${locationName}`,
+    forbiddenMedication,
+  } = formatAnswers(questionAnswers);
+  return {
+    sessionId,
+    campCode: `${tuitionName}`,
+    campName: `${sessionName} - ${locationName}`,
+    startDate: `${startMonth}/${startDay}/${startYear}`,
+    endDate: `${endMonth}/${endDay}/${endYear}`,
+    firstName,
+    lastName,
+    primaryName,
+    primaryNumber,
+    secondaryName,
+    secondaryNumber,
+    p1Name,
+    p1Number,
+    p1Relation,
+    p2Name,
+    p2Number,
+    p2Relation,
+    p3Name,
+    p3Number,
+    p3Relation,
+    canAdministerMedicine,
+    forbiddenMedication,
+    shirtSize,
+    unApproved,
   };
 };
 
+const assignDocumentData = (documents, getter, localKey, foreignKey, as) => getter({ [`${foreignKey}s`]: _.map(documents, localKey) })
+  .collect()
+  .flatMap((docsToAdd) => {
+    const docsToAddByForeignKey = _.keyBy(docsToAdd, foreignKey);
+    return hl(documents)
+      .map(document => Object.assign({
+        [`${as}`]: docsToAddByForeignKey[document[localKey]] || {},
+      }, document));
+  });
 
-const streamSignInReportData = session => streamRegistrations({ sessionIds: [session.sessionId] })
-  .filter(({ registrationDetails }) => !!registrationDetails)
-  .pluck('registrationDetails')
-  .flatten()
-  .filter(({ cancelled }) => !cancelled)
-  .map(registration => Object.assign({ registration }, session))
-  .map(data => streamTuitions({ tuitionIds: [data.registration.tuitionId] })
-    .map(tuition => Object.assign({ tuition }, data)))
-  .mergeWithLimit(10)
-  .map(data => streamPeople({ personIds: [data.personId] })
-    .map(person => Object.assign({ person }, data)))
-  .mergeWithLimit(10)
-  .map(data => streamAnswers({ personIds: [data.personId] })
-    .through(stream => assignQuestionData(stream, data)))
-  .mergeWithLimit(10)
-  .map(formatSignInReport);
 
-module.exports = sessionIds => streamSessions({ sessionIds })
-  .map((session) => {
-    const { name: sessionName, location: { name: locationName } } = session;
-    return streamSignInReportData(session)
-      .through(csvStringify({ columns: signInReportColumns, header: true }))
+module.exports = (startDate, endDate) => {
+  let currentBook = 0;
+  return streamSessionsInDateRange(startDate, endDate)
+    .collect()
+    .flatMap(sessions => assignDocumentData(sessions, streamRegistrations, 'sessionId', 'sessionId', 'registration'))
+    .flatMap(session => hl(session.registration.registrationDetails || [])
+      .map(({ tuitionId, personId }) => Object.assign({ tuitionId, personId }, session)))
+    .collect()
+    .flatMap(sessions => assignDocumentData(sessions, streamTuitions, 'tuitionId', 'tuitionId', 'tuition'))
+    .collect()
+    .flatMap(sessions => assignDocumentData(sessions, streamPeople, 'personId', 'personId', 'person'))
+    .collect()
+    .flatMap(sessions => streamFamilies({ personIds: _.map(sessions, 'personId') })
       .collect()
-      .filter(data => data.length > 0)
-      .map(data => data.join(''))
-      .map(content => ({
-        filename: `sign-in-${sessionName}-${locationName}.csv`,
-        content,
-      }));
-  })
-  .mergeWithLimit(10);
-
-
-// registration { personId, tuitionId }
-// tuition {name: tuitionName }
-// person { firstName, lastName }
+      .flatMap(families => assignDocumentData(families, streamPeople, 'personId', 'personId', 'person'))
+      .collect()
+      .flatMap((families) => {
+        const familiesByFamilyId = _.groupBy(families, 'familyId');
+        return hl(sessions)
+          .map(session => Object.assign({ family: familiesByFamilyId[session.person.familyId] }, session));
+      }))
+    .collect()
+    .flatMap(families => assignDocumentData(families, streamAnswers, 'personId', 'personId', 'answers'))
+    .map(formatSignInData)
+    .collect()
+    .map(sessions => _.groupBy(sessions, 'sessionId'))
+    .map(hl.values)
+    .merge()
+    .map(rows => rows.map(({ sessionId, ...rest }) => rest))
+    .map(rows => [signInHeaders, ...rows])
+    .batch(10)
+    .map((sheets) => {
+      let currentSheet = 0;
+      return hl(sheets)
+        .doto(() => currentSheet++)
+        .reduce((wb, sheet) => {
+          const ws = XLSX.utils.json_to_sheet(sheet, { header: Object.keys(signInHeaders), skipHeader: true });
+          XLSX.utils.book_append_sheet(wb, ws, `sheet${currentSheet}`);
+          return wb;
+        }, XLSX.utils.book_new())
+        .doto(() => currentBook++)
+        .map(wb => XLSX.writeFile(wb, `book${currentBook}.xlsx`));
+    })
+    .merge();
+};
 
