@@ -19,7 +19,7 @@ const baseRequest = {
 };
 
 const endPoints = {
-  base: 'https://3jdnj4lom0.execute-api.us-east-1.amazonaws.com/production',
+  base: 'https://cors-anywhere.herokuapp.com/https://3jdnj4lom0.execute-api.us-east-1.amazonaws.com/production',
   product: {
     season: 'season',
     session: 'session',
