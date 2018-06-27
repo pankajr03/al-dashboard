@@ -6,8 +6,7 @@ const { endPoints: { base: api } } = require('./constants');
 
 const createUrl = (url, endPoint) => `${url}/${endPoint}`;
 
-const parseBuffer = stream => stream;
-console
+const parseBuffer = stream => stream
   .collect()
   .map(buffers => buffers.join(''))
   .map(res => JSON.parse(res));
