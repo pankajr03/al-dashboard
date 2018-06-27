@@ -10,8 +10,6 @@ const streamSessionsInDateRange = (_startDate, _endDate) => {
   const endDate = moment(_endDate);
   return streamSeasons({ seasons: [] })
     .pluck('sessionIds')
-    .flatten()
-    .collect()
     .flatMap(sessionIds => streamSessions({ sessionIds }))
     .filter(({
       startDate: { day: startDay, month: startMonth, year: startYear },

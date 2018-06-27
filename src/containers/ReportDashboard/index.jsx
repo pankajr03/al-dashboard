@@ -21,10 +21,14 @@ class ReportDashboard extends Component {
     this.toggleLoading();
     signIn(startDate, endDate)
       .stopOnError((err) => {
+        console.log(err);
         this.setState(err);
         this.toggleLoading();
       })
-      .done(() => this.toggleLoading());
+      .done(() => {
+        console.log('done');
+        this.toggleLoading();
+      });
     // fetch(`https://gsz8psj9gj.execute-api.us-east-1.amazonaws.com/misc/${this.state.currentReport}?startDate=${moment(startDate).format('YYYY-MM-DD')}&endDate=${moment(endDate).format('YYYY-MM-DD')}`, { mode: 'no-cors' })
     //   .then(() => this.toggleLoading())
     //   .catch((err) => {
@@ -48,7 +52,7 @@ render() {
   return (
     <Grid >
       {this.state.err && <Alert bsStyle="danger">
-        <strong>Holy guacamole!</strong> {this.state.err.message}
+        {this.state.err.message}
       </Alert>}
       <Form inline>
         <FormGroup >

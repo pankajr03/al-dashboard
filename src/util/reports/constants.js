@@ -19,15 +19,15 @@ const baseRequest = {
 };
 
 const endPoints = {
-  base: 'https://awapi.active.com/rest',
+  base: 'https://3jdnj4lom0.execute-api.us-east-1.amazonaws.com/production',
   product: {
-    season: 'camps-season-info',
-    session: 'camps-session-info',
-    tuition: 'camps-tuition-info',
-    sessionOption: 'camps-session-option-info',
+    season: 'season',
+    session: 'session',
+    tuition: 'tuition',
+    sessionOption: 'sessionOption',
   },
   registration: {
-    info: 'camps-registration-info-v3',
+    info: 'registration',
   },
   payment: {
     info: '',
@@ -35,9 +35,9 @@ const endPoints = {
   },
   person: {
     basic: 'camps-person-basic-info',
-    detail: 'camps-person-detail-info',
-    answer: 'camps-person-answer-info',
-    family: 'camps-family-info-v2',
+    detail: 'person',
+    answer: 'answer',
+    family: 'family',
   },
   group: {
     assignment: '',

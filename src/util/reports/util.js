@@ -4,9 +4,6 @@ const hl = require('highland');
 // const nodemailer = require('nodemailer');
 const { mailerEmail, mailerPass } = require('./constants');
 
-
-const { endPoints: { base }, baseRequest, baseBody } = require('./constants');
-
 // const generateCsv = (stream, columns) => stream
 //   .through(csvStringify({ columns, header: true }));
 
@@ -18,18 +15,13 @@ const parseBuffer = stream => stream
   .map(buffers => buffers.join(''))
   .map(res => JSON.parse(res));
 
-const streamData = (query, endPoint) => {
-  const body = JSON.stringify(Object.assign({ request: Object.assign(query, baseRequest) }, baseBody));
-  return hl(fetch(createUrl(base, endPoint), {
-    mode: 'no-cors',
-    method: 'POST',
-    body,
-    json: true,
-  }))
-    .doto(hl.log)
-    .through(parseBuffer)
-    .flatten();
-};
+const streamData = (body, endPoint) => hl(fetch(`/${endPoint}`, {
+  method: 'POST',
+  body: JSON.stringify(body),
+}))
+  .flatMap(response => hl(response.json()))
+  .pluck('data')
+  .flatten();
 
 // const sendEmail = (stream, subject) => stream
 //   .collect()
