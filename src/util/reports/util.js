@@ -2,6 +2,7 @@ const hl = require('highland');
 const XLSX = require('xlsx');
 const _ = require('lodash');
 
+const { endPoints: { base: api } } = require('./constants');
 
 const createUrl = (url, endPoint) => `${url}/${endPoint}`;
 
@@ -10,10 +11,10 @@ const parseBuffer = stream => stream
   .map(buffers => buffers.join(''))
   .map(res => JSON.parse(res));
 
-const streamData = (body, endPoint) => hl(fetch(`/${endPoint}`, {
+const streamData = (body, endPoint) => hl(fetch(createUrl(api, endPoint)), {
   method: 'POST',
   body: JSON.stringify(body),
-}))
+})
   .flatMap(response => hl(response.json()))
   .pluck('data')
   .flatten();
