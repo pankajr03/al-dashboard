@@ -24,7 +24,7 @@ class ReportDashboard extends Component {
     this.setState({ err: null });
     this.toggleLoading();
     reportMap[reportName](startDate, endDate)
-      .stopOnError(err => this.setState(err))
+      .stopOnError(err => this.setState({ err }))
       .done(() => this.toggleLoading());
   }
 
