@@ -11,7 +11,8 @@ const parseBuffer = stream => stream
   .map(buffers => buffers.join(''))
   .map(res => JSON.parse(res));
 
-const streamData = (body, endPoint) => hl(fetch(createUrl('', endPoint)), {
+const streamData = (body, endPoint) => hl(fetch(createUrl(api, endPoint)), {
+  mode: 'no-cors',
   method: 'POST',
   body: JSON.stringify(body),
 })
