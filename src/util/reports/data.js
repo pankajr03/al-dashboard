@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-const { endPoints: { product: { season, session, tuition, sessionOption }, registration: { info: registrationInfo }, person: { detail, answer } } } = require('./constants');
+const { endPoints: { product: { season, session, tuition, sessionOption }, registration: { info: registrationInfo }, person: { detail, answer, family } } } = require('./constants');
 const { streamData } = require('./util');
 
 const streamSeasons = query => streamData(query, season);
@@ -10,6 +10,8 @@ const streamSessionsInDateRange = (_startDate, _endDate) => {
   const endDate = moment(_endDate);
   return streamSeasons({ seasons: [] })
     .pluck('sessionIds')
+    .flatten()
+    .collect()
     .flatMap(sessionIds => streamSessions({ sessionIds }))
     .filter(({
       startDate: { day: startDay, month: startMonth, year: startYear },
@@ -28,6 +30,7 @@ const streamPeople = query => streamData(query, detail);
 const streamAnswers = query => streamData(query, answer);
 const streamTuitions = query => streamData(query, tuition);
 const streamSessionOptions = query => streamData(query, sessionOption);
+const streamFamilies = query => streamData(query, family);
 
 module.exports = {
   streamSeasons,
@@ -38,4 +41,5 @@ module.exports = {
   streamAnswers,
   streamTuitions,
   streamSessionOptions,
+  streamFamilies,
 };

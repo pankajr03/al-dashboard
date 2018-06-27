@@ -1,18 +1,19 @@
-const XLSX = require('xlsx');
 const _ = require('lodash');
 const hl = require('highland');
-// require('dotenv').config();
 
 const {
-  // streamSessions,
   streamRegistrations,
   streamPeople,
   streamAnswers,
   streamTuitions,
-  // streamSeasons,
   streamSessionsInDateRange,
   streamFamilies,
 } = require('./data');
+
+const {
+  createBook,
+  assignDocumentData,
+} = require('./util');
 
 const signInHeaders = {
   campCode: 'Camp Code',
@@ -70,38 +71,14 @@ const formatAnswers = answers => answers.reduce((accum, { label, answer }) => {
 }, { forbiddenMedication: '', canAdministerMedicine: '', unApproved: '', shirtSize: '' });
 
 const formatSignInData = (data) => {
-  const {
-    sessionId,
-    person = {},
-    answers = {},
-    tuition: { name: tuitionName },
-    location: { name: locationName },
-    name: sessionName,
-    startDate: { day: startDay, month: startMonth, year: startYear },
-    endDate: { day: endDay, month: endMonth, year: endYear },
-    family = [],
-  } = data;
+  const { sessionId, person = {}, answers = {}, tuition: { name: tuitionName }, location: { name: locationName }, name: sessionName, startDate: { day: startDay, month: startMonth, year: startYear }, endDate: { day: endDay, month: endMonth, year: endYear }, family = [] } = data;
   const { firstName, lastName } = person;
   const [primaryParent = {}] = family.filter(({ isPrimaryParent }) => isPrimaryParent === 'Yes');
   const { name: primaryName, number: primaryNumber } = formatParentData(primaryParent);
   const [secondaryParent = {}] = family.filter(({ isSecondaryParent }) => isSecondaryParent === 'Yes');
   const { name: secondaryName, number: secondaryNumber } = formatParentData(secondaryParent);
   const { questionAnswers } = answers;
-  const {
-    p1Name,
-    p1Number,
-    p1Relation,
-    p2Name,
-    p2Number,
-    p2Relation,
-    p3Name,
-    p3Number,
-    p3Relation,
-    canAdministerMedicine,
-    shirtSize,
-    unApproved,
-    forbiddenMedication,
-  } = formatAnswers(questionAnswers);
+  const { p1Name, p1Number, p1Relation, p2Name, p2Number, p2Relation, p3Name, p3Number, p3Relation, canAdministerMedicine, shirtSize, unApproved, forbiddenMedication } = formatAnswers(questionAnswers);
   return {
     sessionId,
     campCode: `${tuitionName}`,
@@ -129,16 +106,6 @@ const formatSignInData = (data) => {
     unApproved,
   };
 };
-
-const assignDocumentData = (documents, getter, localKey, foreignKey, as) => getter({ [`${foreignKey}s`]: _.map(documents, localKey) })
-  .collect()
-  .flatMap((docsToAdd) => {
-    const docsToAddByForeignKey = _.keyBy(docsToAdd, foreignKey);
-    return hl(documents)
-      .map(document => Object.assign({
-        [`${as}`]: docsToAddByForeignKey[document[localKey]] || {},
-      }, document));
-  });
 
 
 module.exports = (startDate, endDate) => {
@@ -172,18 +139,8 @@ module.exports = (startDate, endDate) => {
     .map(rows => rows.map(({ sessionId, ...rest }) => rest))
     .map(rows => [signInHeaders, ...rows])
     .batch(10)
-    .map((sheets) => {
-      let currentSheet = 0;
-      return hl(sheets)
-        .doto(() => currentSheet++)
-        .reduce((wb, sheet) => {
-          const ws = XLSX.utils.json_to_sheet(sheet, { header: Object.keys(signInHeaders), skipHeader: true });
-          XLSX.utils.book_append_sheet(wb, ws, `sheet${currentSheet}`);
-          return wb;
-        }, XLSX.utils.book_new())
-        .doto(() => currentBook++)
-        .map(wb => XLSX.writeFile(wb, `book${currentBook}.xlsx`));
-    })
+    .doto(() => { currentBook += 1; })
+    .map(sheets => createBook(sheets, currentBook, signInHeaders, 'Sign-In'))
     .merge();
 };
 

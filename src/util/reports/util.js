@@ -1,11 +1,6 @@
-// const csvStringify = require('csv-stringify');
 const hl = require('highland');
-// const request = require('request-promise');
-// const nodemailer = require('nodemailer');
-const { mailerEmail, mailerPass } = require('./constants');
-
-// const generateCsv = (stream, columns) => stream
-//   .through(csvStringify({ columns, header: true }));
+const XLSX = require('xlsx');
+const _ = require('lodash');
 
 
 const createUrl = (url, endPoint) => `${url}/${endPoint}`;
@@ -23,42 +18,33 @@ const streamData = (body, endPoint) => hl(fetch(`/${endPoint}`, {
   .pluck('data')
   .flatten();
 
-// const sendEmail = (stream, subject) => stream
-//   .collect()
-//   .flatMap((attachments) => {
-//     const transporter = nodemailer.createTransport({
-//       service: 'gmail',
-//       auth: {
-//         user: mailerEmail,
-//         pass: mailerPass,
-//       },
-//     });
+const assignDocumentData = (documents, getter, localKey, foreignKey, as) => getter({ [`${foreignKey}s`]: _.map(documents, localKey) })
+  .collect()
+  .flatMap((docsToAdd) => {
+    const docsToAddByForeignKey = _.keyBy(docsToAdd, foreignKey);
+    return hl(documents)
+      .map(document => Object.assign({
+        [`${as}`]: docsToAddByForeignKey[document[localKey]] || {},
+      }, document));
+  });
 
-//     const mailOptions = {
-//       from: mailerEmail,
-//       to: [
-//         mailerEmail,
-//         'developer@adventurelinks.net',
-//         'elliottabirch@gmail.com',
-//       ],
-//       subject: `${subject}-${new Date()}`,
-//       attachments,
-//     };
-//     return hl((push) => {
-//       transporter.sendMail(mailOptions,
-//         (error, info) => {
-//           push(error, info);
-//           push(null, hl.nil);
-//         });
-//     });
-//   });
-
+const createBook = (sheets, currentBook, headers, reportName) => {
+  let currentSheet = 0;
+  return hl(sheets)
+    .doto(() => { currentSheet += 1; })
+    .reduce((wb, sheet) => {
+      const ws = XLSX.utils.json_to_sheet(sheet, { header: Object.keys(headers), skipHeader: true });
+      XLSX.utils.book_append_sheet(wb, ws, `sheet${currentSheet}`);
+      return wb;
+    }, XLSX.utils.book_new())
+    .map(wb => XLSX.writeFile(wb, `${reportName}-book${currentBook}-${new Date()}.xlsx`));
+};
 
 module.exports = {
-  // generateCsv,
-  // sendEmail,
   createUrl,
   parseBuffer,
   streamData,
+  createBook,
+  assignDocumentData,
 };
 
