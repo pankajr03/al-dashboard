@@ -140,7 +140,7 @@ module.exports = (startDate, endDate) => {
     .merge()
     .map(rows => rows.map(({ sessionId, ...rest }) => rest))
     .map(rows => [signInHeaders, ...rows])
-    .batch(10)
+    .batch(15)
     .doto(() => { currentBook += 1; })
     .map(sheets => createBook(sheets, currentBook, signInHeaders, 'Sign-In'))
     .merge();
