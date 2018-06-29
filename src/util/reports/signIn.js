@@ -36,8 +36,8 @@ const signInHeaders = {
   p3Name: 'p3 Name',
   p3Number: 'p3 Number',
   p3Relation: 'p3 Relation',
-  forbiddenMedication: 'Forbidden OTC Meds',
-  canAdministerMedicine: 'Allowed To Administer Medicine',
+  forbiddenMedication: 'Forbidden OTC',
+  canAdministerMedicine: 'OTC Permission',
   shirtSize: 'Shirt Size',
   unApproved: 'Unapproved',
 };
@@ -58,10 +58,10 @@ const formatParentData = ({ person }) => {
 };
 
 const formatAnswers = answers => answers.reduce((accum, { label, answer }) => {
-  accum.canAdministerMedicine = accum.canAdministerMedicine || (/over-the-counter/i.test(label) && answer);
+  accum.canAdministerMedicine = accum.canAdministerMedicine || (/over-the-counter/.test(label) && answer);
   accum.unApproved = accum.unApproved || (/Not Authorized/i.test(label) && answer);
   accum.shirtSize = accum.shirtSize || (/Shirt Size/.test(label) && answer);
-  accum.forbiddenMedication = accum.forbiddenMedication || (/Over-the-Counter/.test(label) && answer);
+  accum.forbiddenMedication = accum.forbiddenMedication || (/Forbidden Over-the-counter Medications/.test(label) && answer);
   if (/Person/.test(label)) {
     const number = label[8];
     if (/Phone Number/.test(label)) accum[`p${number}Number`] = answer;
