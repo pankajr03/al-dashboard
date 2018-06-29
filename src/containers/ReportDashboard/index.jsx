@@ -31,6 +31,7 @@ class ReportDashboard extends Component {
 toggleLoading = () => this.setState({ loading: !this.state.loading });
 
 changeKey = keyName => e => this.setState({ [`${keyName}`]: e.target.value });
+changeDate = keyName => e => this.setState({ [`${keyName}`]: moment(e.target.value).format('YYYY-MM-DD') });
 
 render() {
   return (
@@ -46,14 +47,14 @@ render() {
             {/* <option value="campPhotos">Camp Photos</option> */}
           </FormControl>{' '}
           <ControlLabel>Start Date</ControlLabel>{' '}
-          <FormControl type="Date" value={this.state.startDate} onChange={this.changeKey('startDate')} />{' '}
+          <FormControl type="Date" value={this.state.startDate} onChange={this.changeDate('startDate')} />{' '}
           <ControlLabel>End Date</ControlLabel>{' '}
-          <FormControl type="Date" value={this.state.endDate} onChange={this.changeKey('endDate')} />
+          <FormControl type="Date" value={this.state.endDate} onChange={this.changeDate('endDate')} />
         </FormGroup>{' '}
         <Button
           disabled={this.state.loading}
           bsStyle={this.state.loading ? 'warning' : 'success'}
-          onClick={() => this.runReport(this.state.currentReport, new Date(this.state.startDate), new Date(this.state.endDate))}
+          onClick={() => this.runReport(this.state.currentReport, this.state.startDate, this.state.endDate)}
         >
         Run Reports
         </Button>
