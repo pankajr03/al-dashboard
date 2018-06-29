@@ -17,7 +17,8 @@ const {
 
 const signInHeaders = {
   campCode: 'Camp Code',
-  campName: 'Camp Name',
+  sessionName: 'Camp Name',
+  locationName: 'Camp Location',
   startDate: 'Start Date',
   endDate: 'End Date',
   firstName: 'First Name',
@@ -82,7 +83,8 @@ const formatSignInData = (data) => {
   return {
     sessionId,
     campCode: `${tuitionName}`,
-    campName: `${sessionName} - ${locationName}`,
+    sessionName,
+    locationName,
     startDate: `${startMonth}/${startDay}/${startYear}`,
     endDate: `${endMonth}/${endDay}/${endYear}`,
     firstName,
