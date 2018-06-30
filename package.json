@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
     "highland": "^3.0.0-beta.3",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",

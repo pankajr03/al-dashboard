@@ -20,6 +20,7 @@ const baseRequest = {
 
 const endPoints = {
   base: 'https://cors-anywhere.herokuapp.com/https://3jdnj4lom0.execute-api.us-east-1.amazonaws.com/production',
+  fairfaxData: 'https://cors-anywhere.herokuapp.com/https://fairfax.usedirect.com/FairfaxFCPAWeb/ACTIVITIES/Search.aspx?category_name=CAMPS&search_text=adventure+links&place_id=ALL+PLACES',
   product: {
     season: 'season',
     session: 'session',

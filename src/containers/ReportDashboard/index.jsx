@@ -3,10 +3,12 @@ import { Form, FormGroup, ControlLabel, FormControl, Button, Alert, Grid } from 
 import moment from 'moment';
 import signIn from '../../util/reports/signIn';
 import campPhotos from '../../util/reports/campPhotos';
+import fairfaxCampData from '../../util/reports/fairfaxCampData';
 // import { streamSeasons, streamSessions } from '../../util/reports/data';
 const reportMap = {
   signIn,
   campPhotos,
+  fairfaxCampData,
 };
 
 class ReportDashboard extends Component {
@@ -24,7 +26,10 @@ class ReportDashboard extends Component {
     this.setState({ err: null });
     this.toggleLoading();
     reportMap[reportName](startDate, endDate)
-      .stopOnError(err => this.setState({ err }))
+      .stopOnError((err) => {
+        console.log();
+        this.setState({ err });
+      })
       .done(() => this.toggleLoading());
   }
 
@@ -45,6 +50,7 @@ render() {
           <FormControl componentClass="select" value={this.state.currentReport} onChange={this.changeKey('currentReport')}>
             <option value="signIn">Sign In Sheets</option>
             <option value="campPhotos">Camp Photos</option>
+            <option value="fairfaxCampData">Fairfax Camp Data</option>
           </FormControl>{' '}
           <ControlLabel>Start Date</ControlLabel>{' '}
           <FormControl type="Date" value={this.state.startDate} onChange={this.changeDate('startDate')} />{' '}

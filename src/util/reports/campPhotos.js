@@ -38,7 +38,7 @@ const formatCampPhotoData = (data) => {
   };
 };
 
-const assignHasPurchasedPhotos = sessions => hl(sessions).flatMap(({ sessionOptions }) => {
+const assignHasPurchasedPhotos = registrations => hl(registrations).flatMap(({ sessionOptions }) => {
   const _sessionOptions = sessionOptions || [];
   return hl(_sessionOptions).pluck('sessionOptionId');
 })
@@ -49,10 +49,10 @@ const assignHasPurchasedPhotos = sessions => hl(sessions).flatMap(({ sessionOpti
   .collect()
   .flatMap((photoSessionOptionIds) => {
     const photoSessionOptionIdsMap = _.keyBy(photoSessionOptionIds);
-    return hl(sessions)
+    return hl(registrations)
       .map(session => Object.assign({ hasPurchasedPhotos: _.some(session.sessionOptions || [], ({ sessionOptionId }) => !!photoSessionOptionIdsMap[sessionOptionId]) }, session));
   })
-  .otherwise(hl(sessions).map(session => Object.assign({ hasPurchasedPhotos: false }, session)));
+  .otherwise(hl(registrations).map(session => Object.assign({ hasPurchasedPhotos: false }, session)));
 
 module.exports = (startDate, endDate) =>
   streamSessionsInDateRange(startDate, endDate)
