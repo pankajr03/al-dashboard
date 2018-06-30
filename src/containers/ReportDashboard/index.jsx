@@ -44,7 +44,7 @@ render() {
           <ControlLabel>Report Name</ControlLabel>{' '}
           <FormControl componentClass="select" value={this.state.currentReport} onChange={this.changeKey('currentReport')}>
             <option value="signIn">Sign In Sheets</option>
-            {/* <option value="campPhotos">Camp Photos</option> */}
+            <option value="campPhotos">Camp Photos</option>
           </FormControl>{' '}
           <ControlLabel>Start Date</ControlLabel>{' '}
           <FormControl type="Date" value={this.state.startDate} onChange={this.changeDate('startDate')} />{' '}

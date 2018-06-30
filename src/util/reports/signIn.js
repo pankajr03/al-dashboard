@@ -116,6 +116,7 @@ module.exports = (startDate, endDate) => {
     .collect()
     .flatMap(sessions => assignDocumentData(sessions, streamRegistrations, 'sessionId', 'sessionId', 'registration'))
     .flatMap(session => hl(session.registration.registrationDetails || [])
+      .filter(({ cancelled }) => !cancelled)
       .map(({ tuitionId, personId }) => Object.assign({ tuitionId, personId }, session)))
     .collect()
     .flatMap(sessions => assignDocumentData(sessions, streamTuitions, 'tuitionId', 'tuitionId', 'tuition'))

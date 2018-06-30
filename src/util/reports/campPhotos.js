@@ -1,73 +1,84 @@
-// const hl = require('highland');
-// const csvStringify = require('csv-stringify');
+const hl = require('highland');
+const _ = require('lodash');
 
-// const {
-//   streamRegistrations,
-//   streamPeople,
-//   streamTuitions,
-//   streamSessionOptions,
-//   streamSessionsInDateRange,
-// } = require('./data');
+const {
+  streamRegistrations,
+  streamPeople,
+  streamTuitions,
+  streamSessionOptions,
+  streamSessionsInDateRange,
+} = require('./data');
 
-
-// const streamCampPhotosReport = sessionId => streamRegistrations({ sessionIds: [sessionId] })
-//   .filter(({ registrationDetails }) => !!registrationDetails)
-//   .pluck('registrationDetails')
-//   .flatten()
-//   .filter(({ cancelled }) => !cancelled)
-//   .map(({ personId, tuitionId, sessionOptions }) => ({ personId, tuitionId, sessionOptions }))
-//   .map(session => streamTuitions({ tuitionIds: [session.tuitionId] })
-//     .map(({ name: tuitionName }) => Object.assign({ tuitionName }, session)))
-//   .mergeWithLimit(10)
-//   .map(session => streamPeople({ personIds: [session.personId] })
-//     .map(({ email }) => Object.assign({ email }, session)))
-//   .mergeWithLimit(10)
-//   .map(({ sessionOptions, ...session }) => {
-//     if (sessionOptions) {
-//       return streamSessionOptions({ sessionOptionIds: sessionOptions.map(({ sessionOptionId }) => sessionOptionId) })
-//         .collect()
-//         .map((sessionOptionData) => {
-//           const campPhotoOptionData = sessionOptionData.filter(({ name }) => /photo/i.test(name));
-//           return Object.assign({ sessionOptions: campPhotoOptionData }, session);
-//         });
-//     }
-//     return hl([Object.assign({ sessionOptions: [] }, session)]);
-//   })
-//   .mergeWithLimit(10)
-//   .reduce((accum, { email, sessionOptions, tuitionName }) => {
-//     if (sessionOptions.length > 0) {
-//       accum.emailsPurchased.push(email);
-//       accum.price = sessionOptions[0].price;
-//     } else {
-//       accum.emailsNotPurchased.push(email);
-//     }
-//     accum.tuitionName = tuitionName;
-//     return accum;
-//   }, { emailsPurchased: [], emailsNotPurchased: [], price: 0 })
-//   .filter(({ emailsPurchased, emailsNotPurchased }) => emailsPurchased.length > 0 || emailsNotPurchased.length > 0)
-//   .map(({ emailsPurchased, emailsNotPurchased, ...rest }) => Object.assign({
-//     emailsPurchased: emailsPurchased.join(' '),
-//     emailsNotPurchased: emailsNotPurchased.join(' '),
-//     numberPurchased: emailsPurchased.length,
-//   }, rest));
+const {
+  assignDocumentData,
+  createBook,
+} = require('./util');
 
 
-// const campPhotosReportColumns = {
-//   sessionName: 'Camp Code',
-//   emailsPurchased: 'Emails Who Purchased',
-//   emailsNotPurchased: 'Emails Who Did Not Purchased',
-//   numberPurchased: 'Number Purchsed',
-//   price: 'Price Charged',
-// };
+const campPhotosHeaders = {
+  campCode: 'Camp Code',
+  sessionName: 'Camp Name',
+  locationName: 'Camp Location',
+  emailsPurchased: 'Emails Who Purchased',
+  emailsNotPurchased: 'Emails Who Did Not Purchased',
+  numberPurchased: 'Number Purchsed',
+  price: 'Price Charged',
+};
 
-// module.exports = (startDate, endDate) => streamSessionsInDateRange(startDate, endDate)
-//   .map(({
-//     sessionId,
-//     location: { name: locationName },
-//   }) => streamCampPhotosReport(sessionId)
-//     .map(({ tuitionName, ...rest }) => Object.assign({ sessionName: `${tuitionName} - ${locationName}` }, rest)))
-//   .mergeWithLimit(10)
-//   .through(csvStringify({ columns: campPhotosReportColumns, header: true }))
-//   .collect()
-//   .filter(data => data.length > 1)
-//   .map(data => data.join(''));
+const formatCampPhotoData = (data) => {
+  const { tuition: { name: tuitionName }, emailsPurchased, emailsNotPurchased, location: { name: locationName }, name: sessionName } = data;
+  return {
+    campCode: `${tuitionName}`,
+    sessionName,
+    locationName,
+    emailsPurchased: emailsPurchased.join(' '),
+    emailsNotPurchased: emailsNotPurchased.join(' '),
+    numberPurchased: emailsPurchased.length,
+    price: 39,
+  };
+};
+
+const assignHasPurchasedPhotos = sessions => hl(sessions).flatMap(({ sessionOptions }) => {
+  const _sessionOptions = sessionOptions || [];
+  return hl(_sessionOptions).pluck('sessionOptionId');
+})
+  .collect()
+  .flatMap(sessionOptionIds => streamSessionOptions({ sessionOptionIds }))
+  .filter(({ name }) => /Camp Photos/i.test(name))
+  .pluck('sessionOptionId')
+  .collect()
+  .flatMap((photoSessionOptionIds) => {
+    const photoSessionOptionIdsMap = _.keyBy(photoSessionOptionIds);
+    return hl(sessions)
+      .map(session => Object.assign({ hasPurchasedPhotos: _.some(session.sessionOptions || [], ({ sessionOptionId }) => !!photoSessionOptionIdsMap[sessionOptionId]) }, session));
+  })
+  .otherwise(hl(sessions).map(session => Object.assign({ hasPurchasedPhotos: false }, session)));
+
+module.exports = (startDate, endDate) =>
+  streamSessionsInDateRange(startDate, endDate)
+    .collect()
+    .flatMap(sessions => assignDocumentData(sessions, streamRegistrations, 'sessionId', 'sessionId', 'registration'))
+    .flatMap(({ registration, ...rest }) => hl(registration.registrationDetails || [])
+      .filter(({ cancelled }) => !cancelled)
+      .map(({ tuitionId, personId, sessionOptions }) => Object.assign({ tuitionId, personId, sessionOptions }, rest)))
+    .collect()
+    .flatMap(assignHasPurchasedPhotos)
+    .collect()
+    .flatMap(sessions => assignDocumentData(sessions, streamTuitions, 'tuitionId', 'tuitionId', 'tuition'))
+    .collect()
+    .flatMap(sessions => assignDocumentData(sessions, streamPeople, 'personId', 'personId', 'person'))
+    .collect()
+    .map(sessions => _.groupBy(sessions, 'sessionId'))
+    .flatMap(hl.values)
+    .map((registrations) => {
+      const session = registrations[0];
+      const emailsPurchased = registrations.filter(({ hasPurchasedPhotos }) => hasPurchasedPhotos).map(({ person: { email } }) => email);
+      const emailsNotPurchased = registrations.filter(({ hasPurchasedPhotos }) => !hasPurchasedPhotos).map(({ person: { email } }) => email);
+      return Object.assign({ emailsPurchased, emailsNotPurchased }, session);
+    })
+    .map(formatCampPhotoData)
+    .collect()
+    .map(rows => [[campPhotosHeaders, ...rows]])
+    .map(sheets => createBook(sheets, 1, campPhotosHeaders, 'Camp-Photos'))
+    .merge();
+
