@@ -62,11 +62,13 @@ module.exports = (startDate, endDate) =>
       .filter(({ cancelled }) => !cancelled)
 	  //.map(({ tuitionId, personId, sessionOptions }) => Object.assign({ tuitionId, personId, sessionOptions }, rest)))
 	  .map(({ tuitionId, personId }) => Object.assign({ tuitionId, personId}, rest)))
-    /*
+    
+	/*
 	Comment By Pankaj 28-6-2019: This is not required as it is not in used to format any column
 	.collect()
     .flatMap(assignHasPurchasedPhotos)
 	*/
+	
     .collect()
     .flatMap(sessions => assignDocumentData(sessions, streamTuitions, 'tuitionId', 'tuitionId', 'tuition'))
     .collect()
@@ -85,4 +87,3 @@ module.exports = (startDate, endDate) =>
     .map(rows => [[campPhotosHeaders, ...rows]])
     .map(sheets => createBook(sheets, 1, campPhotosHeaders, 'Camp-Photos'))
     .merge();
-

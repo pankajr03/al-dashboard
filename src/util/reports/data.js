@@ -3,6 +3,7 @@ const moment = require('moment');
 const { endPoints: { product: { season, session, tuition, sessionOption }, registration: { info: registrationInfo }, person: { detail, answer, family } } } = require('./constants');
 const { streamData } = require('./util');
 
+
 const streamSeasons = query => streamData(query, season);
 const streamSessions = query => streamData(query, session);
 const streamSessionsInDateRange = (_startDate, _endDate) => {
@@ -25,6 +26,7 @@ const streamSessionsInDateRange = (_startDate, _endDate) => {
             (moment(start).isSameOrBefore(startDate, 'day') && moment(end).isSameOrAfter(endDate, 'day')));
     });
 };
+
 const streamRegistrations = query => streamData(query, registrationInfo);
 const streamPeople = query => streamData(query, detail);
 const streamAnswers = query => streamData(query, answer);

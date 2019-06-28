@@ -9,6 +9,7 @@ const baseBody = {
   appToken,
 };
 
+
 const baseRequest = {
   userName,
   password,
@@ -48,6 +49,7 @@ const endPoints = {
     purchase: 'merchandise-purchaser-info',
   },
 };
+
 
 module.exports = {
   SOURCE_DIR,

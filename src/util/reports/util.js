@@ -13,8 +13,8 @@ const {
   baseBody
 } = require("./constants");
 
-const createUrl = (url, endPoint) => `${url}/${endPoint}`;
 
+const createUrl = (url, endPoint) => `${url}/${endPoint}`;
 const parseBuffer = stream => stream
   .collect()
   .map(buffers => buffers.join(''))
