@@ -60,9 +60,13 @@ module.exports = (startDate, endDate) =>
     .flatMap(sessions => assignDocumentData(sessions, streamRegistrations, 'sessionId', 'sessionId', 'registration'))
     .flatMap(({ registration, ...rest }) => hl(registration.registrationDetails || [])
       .filter(({ cancelled }) => !cancelled)
-      .map(({ tuitionId, personId, sessionOptions }) => Object.assign({ tuitionId, personId, sessionOptions }, rest)))
-    .collect()
+	  //.map(({ tuitionId, personId, sessionOptions }) => Object.assign({ tuitionId, personId, sessionOptions }, rest)))
+	  .map(({ tuitionId, personId }) => Object.assign({ tuitionId, personId}, rest)))
+    /*
+	Comment By Pankaj 28-6-2019: This is not required as it is not in used to format any column
+	.collect()
     .flatMap(assignHasPurchasedPhotos)
+	*/
     .collect()
     .flatMap(sessions => assignDocumentData(sessions, streamTuitions, 'tuitionId', 'tuitionId', 'tuition'))
     .collect()

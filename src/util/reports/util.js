@@ -1,8 +1,17 @@
 const hl = require('highland');
 const XLSX = require('xlsx');
 const _ = require('lodash');
+const request = require("request");
 
 const { endPoints: { base: api } } = require('./constants');
+
+const post = hl.wrapCallback(request.post);
+
+const {
+  endPoints: { base },
+  baseRequest,
+  baseBody
+} = require("./constants");
 
 const createUrl = (url, endPoint) => `${url}/${endPoint}`;
 
@@ -10,7 +19,7 @@ const parseBuffer = stream => stream
   .collect()
   .map(buffers => buffers.join(''))
   .map(res => JSON.parse(res));
-
+/*
 const streamData = (body, endPoint) => hl(fetch(createUrl(api, endPoint), {
   method: 'POST',
   body: JSON.stringify(body),
@@ -18,6 +27,25 @@ const streamData = (body, endPoint) => hl(fetch(createUrl(api, endPoint), {
   .flatMap(response => hl(response.json()))
   .pluck('data')
   .flatten();
+
+*/
+
+const streamData = (query, endPoint) => {
+  const body = Object.assign(
+    { request: Object.assign(query, baseRequest) },
+    baseBody
+  );
+  return hl(
+    post({
+      uri: createUrl(base, endPoint),
+      body,
+      json: true
+    })
+  )
+    .pluck("body")
+    .flatten();
+};
+
 
 const assignDocumentData = (documents, getter, localKey, foreignKey, as) => getter({ [`${foreignKey}s`]: _.map(documents, localKey) })
   .collect()
