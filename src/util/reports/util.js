@@ -19,16 +19,6 @@ const parseBuffer = stream => stream
   .collect()
   .map(buffers => buffers.join(''))
   .map(res => JSON.parse(res));
-/*
-const streamData = (body, endPoint) => hl(fetch(createUrl(api, endPoint), {
-  method: 'POST',
-  body: JSON.stringify(body),
-}))
-  .flatMap(response => hl(response.json()))
-  .pluck('data')
-  .flatten();
-
-*/
 
 const streamData = (query, endPoint) => {
   const body = Object.assign(
