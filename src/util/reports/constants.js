@@ -1,7 +1,14 @@
-const appToken = process.env.APPTOKEN;
-const userName = process.env.USERNAME;
-const password = process.env.PASSWORD;
-const applicationName = process.env.APPLICATION_NAME;
+// const appToken = process.env.APPTOKEN;
+// const userName = process.env.USERNAME;
+// const password = process.env.PASSWORD;
+// const applicationName = process.env.APPLICATION_NAME;
+// const mailerEmail = process.env.MAILER_EMAIL;
+// const mailerPass = process.env.MAILER_PASS;
+const appToken =
+  "SdEUeIpSkqVRgnnhll+m+dNnEEBWssJwkeREnBHQSJhd8YfPta6Qb3XeoVq0fk4F";
+const userName = "mark@adventurelinks.net";
+const password = "St@rtup1";
+const applicationName = "AdventureLinksNorthernVirginia";
 const mailerEmail = process.env.MAILER_EMAIL;
 const mailerPass = process.env.MAILER_PASS;
 
