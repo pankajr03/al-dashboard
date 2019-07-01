@@ -6,45 +6,45 @@ const mailerEmail = process.env.MAILER_EMAIL;
 const mailerPass = process.env.MAILER_PASS;
 
 const baseBody = {
-  appToken,
+  appToken
 };
 
 const baseRequest = {
   userName,
   password,
-  applicationName,
+  applicationName
 };
 
 const endPoints = {
-  base: 'https://awapi.active.com/rest',
+  base: "https://awapi.active.com/rest",
   product: {
-    season: 'camps-season-info',
-    session: 'camps-session-info',
-    tuition: 'camps-tuition-info',
-    sessionOption: 'camps-session-option-info',
+    season: "camps-season-info",
+    session: "camps-session-info",
+    tuition: "camps-tuition-info",
+    sessionOption: "camps-session-option-info"
   },
   registration: {
-    info: 'camps-registration-info-v3',
+    info: "camps-registration-info-v3"
   },
   payment: {
-    info: '',
-    allocation: '',
+    info: "",
+    allocation: ""
   },
   person: {
-    basic: 'camps-person-basic-info',
-    detail: 'camps-person-detail-info',
-    answer: 'camps-person-answer-info',
-    family: 'camps-family-info-v2',
+    basic: "camps-person-basic-info",
+    detail: "camps-person-detail-info",
+    answer: "camps-person-answer-info",
+    family: "camps-family-info-v2"
   },
   group: {
-    assignment: '',
-    participant: '',
-    info: '',
+    assignment: "",
+    participant: "",
+    info: ""
   },
   merchandise: {
-    detail: '',
-    purchase: '',
-  },
+    detail: "",
+    purchase: ""
+  }
 };
 
 module.exports = {
@@ -52,5 +52,5 @@ module.exports = {
   baseBody,
   baseRequest,
   mailerEmail,
-  mailerPass,
+  mailerPass
 };

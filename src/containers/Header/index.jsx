@@ -1,12 +1,12 @@
-import React, { Component } from 'react';
-import { Navbar } from 'react-bootstrap';
+import React, { Component } from "react";
+import { Navbar } from "react-bootstrap";
 
 class Header extends Component {
   static state = {
     startDate: new Date(),
     endDate: new Date(),
-    reports: [],
-  }
+    reports: []
+  };
   render() {
     return (
       <Navbar>
