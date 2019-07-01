@@ -6,57 +6,54 @@ const mailerEmail = process.env.MAILER_EMAIL;
 const mailerPass = process.env.MAILER_PASS;
 
 const baseBody = {
-  appToken,
+  appToken
 };
-
 
 const baseRequest = {
   userName,
   password,
-  applicationName,
+  applicationName
 };
 
 const endPoints = {
-  base: 'https://cors-anywhere.herokuapp.com/https://awapi.active.com/rest',
-  fairfaxData: 'https://cors-anywhere.herokuapp.com/https://fairfax.usedirect.com/FairfaxFCPAWeb/ACTIVITIES/Search.aspx?category_name=CAMPS&search_text=adventure+links&place_id=ALL+PLACES',
+  base: "https://cors-anywhere.herokuapp.com/https://awapi.active.com/rest",
+  fairfaxData:
+    "https://cors-anywhere.herokuapp.com/https://fairfax.usedirect.com/FairfaxFCPAWeb/ACTIVITIES/Search.aspx?category_name=CAMPS&search_text=adventure+links&place_id=ALL+PLACES",
   product: {
-    season: 'camps-season-info',
-    session: 'camps-session-info',
-    tuitionV2: 'camps-tuition-info-v2',
-	tuition: 'camps-tuition-info',
-	sessionOption: 'camps-session-option-info',
+    season: "camps-season-info",
+    session: "camps-session-info",
+    tuitionV2: "camps-tuition-info-v2",
+    tuition: "camps-tuition-info",
+    sessionOption: "camps-session-option-info"
   },
   registration: {
-    info: 'camps-registration-info-v2',
+    info: "camps-registration-info-v2"
   },
   payment: {
-    info: 'camps-payment-info',
-    allocation: 'camps-payment-allocation-info',
+    info: "camps-payment-info",
+    allocation: "camps-payment-allocation-info"
   },
   person: {
-    basic: 'camps-person-basic-info',
-    detail: 'camps-person-detail-info',
-    answer: 'camps-person-answer-info',
-    family: 'camps-family-info-v2',
+    basic: "camps-person-basic-info",
+    detail: "camps-person-detail-info",
+    answer: "camps-person-answer-info",
+    family: "camps-family-info-v2"
   },
   group: {
-    assignment: 'camps-group-assignment-info',
-    participant: 'camps-participant-info',
-    info: 'camps-group-info',
+    assignment: "camps-group-assignment-info",
+    participant: "camps-participant-info",
+    info: "camps-group-info"
   },
   merchandise: {
-    detail: 'merchandise-info',
-    purchase: 'merchandise-purchaser-info',
-  },
+    detail: "merchandise-info",
+    purchase: "merchandise-purchaser-info"
+  }
 };
 
-
 module.exports = {
-  SOURCE_DIR,
-  OUTPUT_DIR,
   endPoints,
   baseBody,
   baseRequest,
   mailerEmail,
-  mailerPass,
+  mailerPass
 };
