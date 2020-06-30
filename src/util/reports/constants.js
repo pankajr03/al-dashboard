@@ -17,9 +17,10 @@ const baseRequest = {
   password,
   applicationName,
 };
-
+// base changed by Pankaj as "https://3jdnj4lom0.execute-api.us-east-1.amazonaws.com/production" is not working
+// https://awapi.active.com/rest
 const endPoints = {
-  base: 'https://cors-anywhere.herokuapp.com/https://3jdnj4lom0.execute-api.us-east-1.amazonaws.com/production',
+  base: 'https://cors-anywhere.herokuapp.com/https://awapi.active.com/rest',
   fairfaxData: 'https://cors-anywhere.herokuapp.com/https://fairfax.usedirect.com/FairfaxFCPAWeb/ACTIVITIES/Search.aspx?category_name=CAMPS&search_text=adventure+links&place_id=ALL+PLACES',
   product: {
     season: 'season',
